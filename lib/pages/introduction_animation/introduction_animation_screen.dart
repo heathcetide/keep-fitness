@@ -114,6 +114,6 @@ class _IntroductionAnimationScreenState
   }
 
   void _signUpClick() {
-    Navigator.pop(context);
+    Navigator.pushNamed(context, '/');
   }
 }

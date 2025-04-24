@@ -36,28 +36,28 @@ class _ProfilePageState extends State<ProfilePage> {
   Future updateUserInfoFromLS() async {
     var response = await UserApi().getUserInfoByToken();
     if (response.code == 200) {
-      // 将JSON数据解析为UserInfo对象
-      UserInfo user = UserInfo.fromJson(response.data);
-      // 更新UI状态
-      setState(() {
-        userInfo['username'] = user.username;
-        userInfo['avatar'] = user.avatarUrl;
-        userInfo['email'] = user.email;
-      });
-      LocalStorage.user_avatar.set(user.avatarUrl);
-      LocalStorage.user_userName.set(user.username);
-      LocalStorage.user_email.set(user.email);
-      LocalStorage.user_activityCount.set(user.activityCount.toString());
-      LocalStorage.user_articleCount.set(user.articleCount.toString());
-      LocalStorage.user_points.set(user.points.toString());
-      LocalStorage.user_address.set(user.address);
-      LocalStorage.user_gender.set(user.gender.toString());
-      LocalStorage.user_phone.set(user.phone);
-      LocalStorage.user_bio.set(user.bio ?? '');
-      LocalStorage.user_birthday.set(user.birthday);
-      LocalStorage.user_createdAt.set(user.createdAt);
-      LocalStorage.user_lastLoginTime.set(user.lastLoginTime);
-      return;
+      // // 将JSON数据解析为UserInfo对象
+      // UserProfile user = UserProfile.fromJson(response.data);
+      // // 更新UI状态
+      // setState(() {
+      //   userInfo['username'] = user.username;
+      //   userInfo['avatar'] = user.avatarUrl;
+      //   userInfo['email'] = user.email;
+      // });
+      // LocalStorage.user_avatar.set(user.avatarUrl);
+      // LocalStorage.user_userName.set(user.username);
+      // LocalStorage.user_email.set(user.email);
+      // LocalStorage.user_activityCount.set(user.activityCount.toString());
+      // LocalStorage.user_articleCount.set(user.articleCount.toString());
+      // LocalStorage.user_points.set(user.points.toString());
+      // LocalStorage.user_address.set(user.address);
+      // LocalStorage.user_gender.set(user.gender.toString());
+      // LocalStorage.user_phone.set(user.phone);
+      // LocalStorage.user_bio.set(user.bio ?? '');
+      // LocalStorage.user_birthday.set(user.birthday);
+      // LocalStorage.user_createdAt.set(user.createdAt);
+      // LocalStorage.user_lastLoginTime.set(user.lastLoginTime);
+      // return;
     }
 
     // 如果网络请求失败，使用本地存储的默认值

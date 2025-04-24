@@ -1,5 +1,7 @@
 
 import 'package:demo_project/pages/fitness_app/fitness_app_home_screen.dart';
+import 'package:demo_project/pages/fitness_app/mine/profile.dart';
+import 'package:demo_project/pages/fitness_app/mine/profile_info.dart';
 import 'package:demo_project/pages/introduction_animation/introduction_animation_screen.dart';
 import 'package:demo_project/pages/logger/logger.dart';
 import 'package:demo_project/pages/profile/about_page.dart';
@@ -68,7 +70,7 @@ class MyApp extends StatelessWidget {
     return {
       '/': (context) => FitnessAppHomeScreen(),
       '/login': (context) => LoginScreen(),
-      '/profile/myInformation': (context) => MyInformation(),
+      '/profile_detail': (context) => ProfileInfoView(),
       '/settings': (context) => const SettingsPage(),
       '/logger': (context) => LogPage(),
       '/profile/feedback': (context) => FeedbackPage(),  // 反馈页面

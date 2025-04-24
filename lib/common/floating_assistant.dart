@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:animations/animations.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'chat_message.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 
 class FloatingAssistant extends StatefulWidget {
   @override
@@ -10,13 +15,15 @@ class FloatingAssistant extends StatefulWidget {
 }
 
 class _FloatingAssistantState extends State<FloatingAssistant> with SingleTickerProviderStateMixin {
-  double _xPosition = 100;
-  double _yPosition = 100;
+  double _xPosition = 280;
+  double _yPosition = 600;
   bool _isVisible = true;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   double _dragOpacity = 1.0;
   bool _isDragging = false;
+  String _tipMessage = '正在获取智能建议...';
+  Timer? _tipTimer;
 
   @override
   void initState() {
@@ -26,18 +33,26 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
       duration: Duration(milliseconds: 200),
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.8).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut)
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
+
+    _fetchTipMessage(); // 初始调用
+    _tipTimer = Timer.periodic(Duration(minutes: 5), (_) => _fetchTipMessage());
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _tipTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+
     return Stack(
       children: [
         AnimatedPositioned(
@@ -57,6 +72,13 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
               setState(() {
                 _xPosition += details.delta.dx;
                 _yPosition += details.delta.dy;
+
+                // 限制边界（同时考虑提示气泡和悬浮球）
+                final maxX = screenWidth - 60;
+                final maxY = screenHeight - 60 - 90; // 60球 + 30气泡高度
+
+                _xPosition = _xPosition.clamp(0, maxX);
+                _yPosition = _yPosition.clamp(0, maxY);
               });
             },
             onPanEnd: (_) {
@@ -80,7 +102,7 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
                 closedColor: Colors.transparent,
                 openColor: Colors.white,
                 transitionDuration: Duration(milliseconds: 500),
-                openBuilder: (context, _) => ChatWindow(),
+                openBuilder: (context, _) => ChatWindow(_tipMessage),
                 closedBuilder: (context, openContainer) => AnimatedOpacity(
                   opacity: _dragOpacity,
                   duration: Duration(milliseconds: 200),
@@ -139,8 +161,8 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
         ),
         if (_isVisible)
           Positioned(
-            left: _xPosition - 50,
-            top: _yPosition - 80,
+            left: _xPosition - 60,
+            top: _yPosition - 60,
             child: _buildAnimatedTip(),
           ),
       ],
@@ -180,7 +202,7 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
       opacity: _isVisible ? 1.0 : 0.0,
       duration: Duration(milliseconds: 300),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
         decoration: BoxDecoration(
           color: Colors.black87,
           borderRadius: BorderRadius.circular(20),
@@ -193,7 +215,7 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
           ],
         ),
         child: Text(
-          '点我咨询\n双击打开聊天',
+          _tipMessage,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.white,
@@ -213,9 +235,86 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
       });
     }
   }
+
+  Future<void> _fetchTipMessage() async {
+    // final tip = await getSmartTipFromAI("请根据用户健康数据，用一句话提供简洁建议");
+    final tip = "请根据用户健康数据\n 用一句话提供简洁建议";
+    setState(() {
+      _tipMessage = tip;
+    });
+  }
+
+  Future<String> getSmartTipFromAI(String prompt) async {
+    final dio = Dio();
+    final url = 'https://try2.fit2cloud.cn/api/application/chat_message/26fc124a-201e-11f0-a05b-0242ac140003';
+    final token = 'application-2b370cbd857c4c64fb974cd4da2a3888';
+
+    final data = {
+      "0": "n",
+      "1": "e",
+      "2": "w",
+      "message": prompt + "(备注: 请用普通文本格式, 不支持Markdown格式, 不要包含HTML标签, 每次回答请不要超过21个字符 每次回答请不要超过21个字符)",
+      "re_chat": false,
+      "form_data": {}
+    };
+
+    final options = Options(
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token,
+      },
+      responseType: ResponseType.stream,
+    );
+
+    try {
+      final response = await dio.post<ResponseBody>(url, data: data, options: options);
+      final stream = response.data!.stream
+          .transform(StreamTransformer.fromBind((s) => s.cast<List<int>>().transform(utf8.decoder)));
+
+      StringBuffer buffer = StringBuffer();
+
+      await for (final line in stream) {
+        final trimmed = line.trim();
+
+        if (trimmed.isEmpty || !trimmed.startsWith('data:')) continue;
+
+        final jsonPart = trimmed.substring(5);
+        try {
+          final jsonData = json.decode(jsonPart);
+          if (jsonData["content"] != null) {
+            buffer.write(jsonData["content"]);
+          }
+        } catch (e) {
+          print("解析失败，跳过该段: $e");
+          continue;
+        }
+      }
+
+      String formatText(String input) {
+        final buffer = StringBuffer();
+        for (int i = 0; i < input.length; i++) {
+          buffer.write(input[i]);
+          if ((i + 1) % 8 == 0 && i != input.length - 1) {
+            buffer.write('\n');
+          }
+        }
+        return buffer.toString();
+      }
+
+      return buffer.toString().trim().isNotEmpty
+          ? formatText(buffer.toString().trim()) : "小主您好\n 我是您的健康减肥智能助手\n 双击我即可跟我聊天";
+    } catch (e) {
+      print("AI提示获取失败: $e");
+      return "小主您好\n 我是您的健康减肥智能助手\n 双击我即可跟我聊天";
+    }
+  }
 }
 
 class ChatWindow extends StatefulWidget {
+  final String? initialMessage;
+
+  ChatWindow(this.initialMessage);
+
   @override
   _ChatWindowState createState() => _ChatWindowState();
 }
@@ -228,6 +327,18 @@ class _ChatWindowState extends State<ChatWindow> with AutomaticKeepAliveClientMi
 
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialMessage != null && widget.initialMessage!.trim().isNotEmpty) {
+      // 自动发起消息
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _controller.text = widget.initialMessage!;
+        _sendMessage();
+      });
+    }
+  }
 
   void _sendMessage() async {
     if (_controller.text.isEmpty) return;
@@ -243,28 +354,75 @@ class _ChatWindowState extends State<ChatWindow> with AutomaticKeepAliveClientMi
       _isAIThinking = true;
     });
 
+    final userInput = _controller.text;
     _controller.clear();
     _scrollToBottom();
 
-    // 模拟AI回复
-    await Future.delayed(Duration(seconds: 1));
+    final dio = Dio();
+    final url = 'https://try2.fit2cloud.cn/api/application/chat_message/26fc124a-201e-11f0-a05b-0242ac140003';
+    final token = 'application-2b370cbd857c4c64fb974cd4da2a3888';
 
-    final aiMessage = Message(
-      content: "您好！我是您的AI助手，当前为演示版本。以下是一些示例回复：\n\n"
-          "```python\nprint('Hello World!')\n```\n\n"
-          "**功能特点**\n"
-          "- 多行文本支持\n- 代码高亮\n- 实时交互\n- 上下文记忆",
-      isUser: false,
-      timestamp: DateTime.now(),
+    final data = {
+      "0": "n",
+      "1": "e",
+      "2": "w",
+      "message": userInput + "(备注: 请用普通文本格式, 不支持Markdown格式, 回答请不要包含任何HTML标签和样式, 不要回答跟此备注相关的信息)",
+      "re_chat": false,
+      "form_data": {}
+    };
+
+    final options = Options(
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token,
+      },
+      responseType: ResponseType.stream,
     );
 
+    try {
+      final response = await dio.post<ResponseBody>(url, data: data, options: options);
+
+      final stream = response.data!.stream
+          .transform(StreamTransformer.fromBind((s) => s.cast<List<int>>().transform(utf8.decoder)));
+      Message aiMessage = Message(content: '', isUser: false, timestamp: DateTime.now());
+
+      setState(() {
+        _messages.add(aiMessage);
+      });
+      print("AI消息内容更新: ${aiMessage.content}");
+      await for (final line in stream) {
+        final trimmed = line.trim();
+        if (trimmed.startsWith("data:")) {
+          final jsonStr = trimmed.substring(5);
+          try {
+            final jsonData = json.decode(jsonStr);
+            if (jsonData["content"] != null) {
+              // 直接修改 aiMessage 内容（引用已在 _messages 中）
+              setState(() {
+                aiMessage.content += jsonData["content"];
+                _scrollToBottom();
+              });
+            }
+          } catch (e) {
+            print("解析失败: $e");
+          }
+        }
+      }
+    } catch (e) {
+      print("AI请求出错: $e");
+      setState(() {
+        _messages.add(Message(
+          content: "AI 请求失败，请稍后重试。",
+          isUser: false,
+          timestamp: DateTime.now(),
+        ));
+      });
+    }
+
     setState(() {
-      _messages.add(aiMessage);
       _isAIThinking = false;
     });
-    _scrollToBottom();
   }
-
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -282,11 +440,15 @@ class _ChatWindowState extends State<ChatWindow> with AutomaticKeepAliveClientMi
     super.build(context);
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: Text("AI 助手"),
+        titleTextStyle: TextStyle(color: Colors.black), // 设置标题文字颜色为黑色
+        iconTheme: IconThemeData(color: Colors.black), // 设置图标颜色为黑色
         actions: [
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed: () => setState(_messages.clear),
+            color: Colors.black, // 设置图标颜色为黑色
+            onPressed: () => setState(() => _messages.clear()),
           ),
         ],
       ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Message {
-  final String content;
+  String content;
   final bool isUser;
   final DateTime timestamp;
 

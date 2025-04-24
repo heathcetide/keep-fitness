@@ -2,40 +2,63 @@ import 'package:demo_project/common/api_service.dart';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 
+import '../common/local_storage.dart';
+
 class UserApi {
   final ApiService _apiService = ApiService();
 
   //用户发送邮箱验证码
   Future<ApiResponse> sendEmailVerificationCode(String email) async {
-    return await _apiService.post('/api/users/email/code?email=$email');
+    return await _apiService.post('/fitness/api/users/email/code?email=$email');
+  }
+
+  // 用户注册
+  Future<ApiResponse> register(String code, String email) async {
+    return await _apiService.post(
+      '/fitness/api/users/register/email',
+      data: {'code': code, 'email': email},
+    );
   }
 
   // 用户登录
   Future<ApiResponse> login(String code, String email) async {
     return await _apiService.post(
-      '/api/users/login/email',
+      '/fitness/api/users/login/email',
       data: {'code': code, 'email': email},
     );
   }
 
   // 用户根据token获取信息
   Future<ApiResponse> getUserInfoByToken() async {
-    return await _apiService.get('/api/users/info');
+    return await _apiService.get('/fitness/api/users/info');
+  }
+
+  // 更新用户信息
+  Future<ApiResponse> updateUserProfile(UserProfile user) async {
+    return await _apiService.put(
+      '/fitness/api/users/update',
+      data: {
+        'username': user.username,
+        'address': user.address,
+        'birthday': user.birthday,
+        'gender': user.gender,
+        'bio': user.bio,
+      },
+    );
   }
 
   Future<ApiResponse> uploadAvatar(Uint8List imageData) async {
     return await _apiService.post(
-        '/api/users/upload-avatar',
-        data: FormData.fromMap({
-          'file': MultipartFile.fromBytes(imageData),
-        }));
+      '/fitness/api/users/upload-avatar',
+      data: FormData.fromMap({'file': MultipartFile.fromBytes(imageData)}),
+    );
   }
 
   Future<ApiResponse<Map<String, dynamic>>> updateUserInfo(
     Map<String, dynamic> data,
   ) async {
     return await _apiService.put<Map<String, dynamic>>(
-      '/api/users/info',
+      '/fitness/api/users/info',
       data: data,
     );
   }
@@ -83,24 +106,22 @@ class UserApi {
   }
 }
 
-
-class UserInfo {
+class UserProfile {
   final String username;
   final String email;
   final String phone;
   final String address;
-  final int points;
-  final int articleCount;
-  final int activityCount;
-  final String passwordSalt;
-  final String avatarUrl;
+  final String points;
+  final String articleCount;
+  final String activityCount;
   final int gender;
-  final String? bio;
+  final String bio;
   final String birthday;
   final String lastLoginTime;
   final String createdAt;
+  final String avatarUrl;
 
-  UserInfo({
+  UserProfile({
     required this.username,
     required this.email,
     required this.phone,
@@ -108,51 +129,29 @@ class UserInfo {
     required this.points,
     required this.articleCount,
     required this.activityCount,
-    required this.passwordSalt,
-    required this.avatarUrl,
     required this.gender,
     required this.bio,
     required this.birthday,
     required this.lastLoginTime,
     required this.createdAt,
+    required this.avatarUrl,
   });
 
-  // 通过工厂方法从JSON解析数据
-  factory UserInfo.fromJson(Map<String, dynamic> json) {
-    return UserInfo(
-      username: json['username'],
-      email: json['email'],
-      phone: json['phone'],
-      address: json['address'],
-      points: json['points'],
-      articleCount: json['articleCount'],
-      activityCount: json['activityCount'],
-      passwordSalt: json['passwordSalt'],
-      avatarUrl: json['avatarUrl'],
-      gender: json['gender'],
-      bio: json['bio'],
-      birthday: json['birthday'],
-      lastLoginTime: json['lastLoginTime'],
-      createdAt: json['createdAt'],
+  factory UserProfile.fromLocalStorage() {
+    return UserProfile(
+      username: LocalStorage.user_userName.get() ?? '',
+      email: LocalStorage.user_email.get() ?? '',
+      phone: LocalStorage.user_phone.get() ?? '',
+      address: LocalStorage.user_address.get() ?? '',
+      points: LocalStorage.user_points.get() ?? '0',
+      articleCount: LocalStorage.user_articleCount.get() ?? '0',
+      activityCount: LocalStorage.user_activityCount.get() ?? '0',
+      gender: int.tryParse(LocalStorage.user_gender.get() ?? '0') ?? 0,
+      bio: LocalStorage.user_bio.get() ?? '',
+      birthday: LocalStorage.user_birthday.get() ?? '',
+      lastLoginTime: LocalStorage.user_lastLoginTime.get() ?? '',
+      createdAt: LocalStorage.user_createdAt.get() ?? '',
+      avatarUrl: LocalStorage.user_avatarUrl.get() ?? '',
     );
-  }
-
-  // 将对象转为JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'username': username,
-      'email': email,
-      'phone': phone,
-      'address': address,
-      'points': points,
-      'articleCount': articleCount,
-      'activityCount': activityCount,
-      'avatarUrl': avatarUrl,
-      'gender': gender,
-      'bio': bio,
-      'birthday': birthday,
-      'lastLoginTime': lastLoginTime,
-      'createdAt': createdAt,
-    };
   }
 }

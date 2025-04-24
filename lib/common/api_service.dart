@@ -32,9 +32,9 @@ class ApiService {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
-        sendTimeout: const Duration(seconds: 10),
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+        sendTimeout: const Duration(seconds: 20),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       ),
     );
@@ -73,7 +73,7 @@ class ApiService {
   // 获取存储的token
   String? _getToken() {
     // 从本地存储获取token的逻辑
-    return LocalStorage.user_token.get();
+    return LocalStorage.access_token.get();
   }
 
   // 统一的错误处理
