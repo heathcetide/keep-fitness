@@ -54,12 +54,46 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
             if (!snapshot.hasData) {
               return const SizedBox();
             } else {
-              return Stack(
-                children: <Widget>[
-                  tabBody,
-                  bottomBar(),
-                  FloatingAssistant(),
-                ],
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final bottomNavHeight = 80.0; // 底部导航栏高度
+                  return Stack(
+                    children: <Widget>[
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: bottomNavHeight, // 为底部导航栏留出空间
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: constraints.maxHeight - bottomNavHeight,
+                          ),
+                          child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight - bottomNavHeight,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min, // 关键修改
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: tabBody,
+                                  ),
+                                ],
+                              ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: _buildBottomNavigation(),
+                      ),
+                      FloatingAssistant(),
+                    ],
+                  );
+                },
               );
             }
           },
@@ -73,60 +107,28 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
     return true;
   }
 
-  Widget bottomBar() {
-    return Column(
-      children: <Widget>[
-        const Expanded(
-          child: SizedBox(),
-        ),
-        BottomBarView(
-          tabIconsList: tabIconsList,
-          addClick: () {},
-          changeIndex: (int index) {
-            if (index == 0) {
-              animationController?.reverse().then<dynamic>((data) {
-                if (!mounted) {
-                  return;
-                }
-                setState(() {
-                  tabBody =
-                      MyDiaryScreen(animationController: animationController);
-                });
-              });
-            } else if (index == 1) {
-              animationController?.reverse().then<dynamic>((data) {
-                if (!mounted) {
-                  return;
-                }
-                setState(() {
-                  tabBody =
-                      TrainingScreen(animationController: animationController);
-                });
-              });
-            } else if(index == 2){
-              animationController?.reverse().then<dynamic>((data) {
-                if (!mounted) {
-                  return;
-                }
-                setState(() {
-                  tabBody =
-                      CommunityScreen(animationController: animationController);
-                });
-              });
-            } else if (index == 3) {
-              animationController?.reverse().then<dynamic>((data) {
-                if (!mounted) {
-                  return;
-                }
-                setState(() {
-                  tabBody =
-                      MyProfileScreen(animationController: animationController);
-                });
-              });
-            }
-          },
-        ),
-      ],
+  Widget _buildBottomNavigation() {
+    return BottomBarView(
+      tabIconsList: tabIconsList,
+      addClick: () {},
+      changeIndex: (int index) {
+        if (index == 0) {
+          _updateTabBody(MyDiaryScreen(animationController: animationController));
+        } else if (index == 1) {
+          _updateTabBody(TrainingScreen(animationController: animationController));
+        } else if (index == 2) {
+          _updateTabBody(CommunityScreen(animationController: animationController));
+        } else if (index == 3) {
+          _updateTabBody(MyProfileScreen(animationController: animationController));
+        }
+      },
     );
+  }
+
+  void _updateTabBody(Widget newBody) {
+    animationController?.reverse().then<dynamic>((data) {
+      if (!mounted) return;
+      setState(() => tabBody = newBody);
+    });
   }
 }

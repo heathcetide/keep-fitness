@@ -1,3 +1,4 @@
+import 'package:demo_project/pages/introduction_animation/model/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:demo_project/pages/fitness_app/mine/profile_info.dart';
 import 'package:demo_project/pages/fitness_app/mine/recent_activity.dart';
@@ -5,6 +6,8 @@ import '../../../api/user_api.dart';
 import '../ui_view/title_view.dart';
 import 'charts.dart';
 import 'health_goals.dart';
+import 'health_info.dart';
+import 'health_detail_page.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({Key? key, required this.animationController})
@@ -24,6 +27,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   double topBarOpacity = 0.0;
 
   UserProfile? user;
+  UserProfileForm? healthProfile;
 
   @override
   void initState() {
@@ -34,6 +38,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         curve: Interval(0, 0.5, curve: Curves.fastOutSlowIn),
       ),
     );
+    _fetchHealthData();
     addAllListData();
 
     scrollController.addListener(() {
@@ -58,6 +63,21 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         }
       }
     });
+  }
+
+  Future<void> _fetchHealthData() async {
+    try {
+      final response = await UserApi().getUserProfile();
+      print('健康数据响应: ${response.code}');
+      if (response.code == 200) {
+        print('健康数据内容: ${response.data}');
+        setState(() {
+          healthProfile = UserProfileForm.fromJson(response.data);
+        });
+      }
+    } catch (e) {
+      print('获取健康数据失败: $e');
+    }
   }
 
   void addAllListData() {
@@ -89,12 +109,10 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         animationController: widget.animationController!,
       ),
     );
-
-    // Health Goals Section
     listViews.add(
       TitleView(
-        titleTxt: '健康目标',
-        subTxt: '您的目标进度',
+        titleTxt: '健康数据',
+        subTxt: '查看详细数据',
         animation: Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
             parent: widget.animationController!,
@@ -102,6 +120,24 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           ),
         ),
         animationController: widget.animationController!,
+        onTap: () {
+          print('点击健康数据按钮');
+          print('健康数据状态: ${healthProfile != null ? "已加载" : "未加载"}');
+          if (healthProfile != null) {
+            print('跳转到健康详情页');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HealthDetailPage(profile: healthProfile!),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('正在加载健康数据...'))
+            );
+            _fetchHealthData();
+          }
+        },
       ),
     );
     listViews.add(
@@ -117,7 +153,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     );
     listViews.add(
       TitleView(
-        titleTxt: '体重变化趋势',
         subTxt: '查看您的体重变化',
         animation: Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
@@ -129,8 +164,27 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       ),
     );
     listViews.add(
-      WeightTrendChart(
-        weightData: [70, 68, 69, 67, 66, 65, 64], // 示例数据
+      const SizedBox(height: 16),
+    );
+
+    listViews.add(
+      TitleView(
+        titleTxt: '健康趋势',
+        subTxt: '左右滑动查看',
+        animation: Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: widget.animationController!,
+            curve: Interval((1 / count) * 5, 1.0, curve: Curves.fastOutSlowIn),
+          ),
+        ),
+        animationController: widget.animationController!,
+      ),
+    );
+
+    listViews.add(
+      const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: HealthChartCarousel(),
       ),
     );
     // Recent Activity Section

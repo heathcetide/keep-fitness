@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 
 import '../common/local_storage.dart';
+import '../pages/introduction_animation/model/user_profile.dart';
 
 class UserApi {
   final ApiService _apiService = ApiService();
@@ -45,6 +46,39 @@ class UserApi {
         'bio': user.bio,
       },
     );
+  }
+
+  // 更新用户信息
+  Future<ApiResponse> addAndUpdateUserProfile(UserProfileForm form) async {
+    return await _apiService.post(
+      '/fitness/api/user-profile/save',
+      data: {
+        'gender': form.gender,
+        'age': form.age,
+        'heightCm': form.heightCm,
+        'weightKg': form.weightKg,
+        'medicalHistory': form.medicalHistory,
+        'exerciseHabit': form.exerciseHabit,
+        'dietPreference': form.dietPreference,
+        'sleepHours': form.sleepHours,
+        'smokingHabit': form.smokingHabit,
+        'targetWeight': form.targetWeight,
+        'goalDurationWeeks': form.goalDurationWeeks,
+        'dailyCalorieGoal': form.dailyCalorieGoal,
+        'dailyStepsGoal': form.dailyStepsGoal,
+        'bodyFatPercent': form.bodyFatPercent,
+        'muscleMass': form.muscleMass,
+        'bmr': form.bmr,
+        'bmi': form.bmi,
+        'waistCm': form.waistCm,
+        'hipCm': form.hipCm,
+      },
+    );
+  }
+
+  // 获取用户信息
+  Future<ApiResponse> getUserProfile() async {
+    return await _apiService.get('/fitness/api/user-profile/get');
   }
 
   Future<ApiResponse> uploadAvatar(Uint8List imageData) async {

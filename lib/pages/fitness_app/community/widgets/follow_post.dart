@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:like_button/like_button.dart';
@@ -35,108 +34,162 @@ class FollowedPost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[200]!))),
-      padding: EdgeInsets.all(12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Avatar(
-                posterAvatar!,
-                name: posterName!,
-              ),
-              SizedBox(width: 12.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      posterName!,
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      content!,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "${time!.hour}:${time!.minute} | ${likeCount} Likes | ${commentCount} Comments",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    // 展示图片列表
-                    if (imageList != null && imageList!.isNotEmpty)
-                      Container(
-                        margin: EdgeInsets.only(top: 8.0),
-                        height: 100, // 设置高度
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: imageList!.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              margin: EdgeInsets.only(right: 8.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: Image.network(
-                                  imageList![index],
-                                  fit: BoxFit.cover,
-                                  width: 100, // 设置宽度
-                                ),
-                              ),
-                            );
-                          },
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        padding: EdgeInsets.all(16.0), // 增加内边距
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Avatar(
+                  posterAvatar!,
+                  name: posterName!,
+                  size: 40.0, // 增加头像大小
+                ),
+                SizedBox(width: 12.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        posterName!,
+                        style: TextStyle(
+                          fontSize: 18, // 增大字体
+                          fontWeight: FontWeight.w600, // 调整字重
+                          color: Colors.black87,
                         ),
                       ),
-                  ],
+                      SizedBox(height: 4.0),
+                      Text(
+                        content!,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                          height: 1.4, // 增加行高
+                        ),
+                      ),
+                      SizedBox(height: 8.0),
+                      Text(
+                        "${time!.hour}:${time!.minute} | ${likeCount} Likes | ${commentCount} Comments",
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                      // 图片展示部分
+                      if (imageList != null && imageList!.isNotEmpty)
+                        Container(
+                          margin: EdgeInsets.only(top: 12.0),
+                          height: 120, // 增加图片高度
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: imageList!.length,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                margin: EdgeInsets.only(right: 8.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: Image.network(
+                                    imageList![index],
+                                    fit: BoxFit.cover,
+                                    width: 120, // 增加图片宽度
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          // 点赞和评论按钮
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end, // 水平居右
-            children: [
-              LikeButton(
-                isLiked: isLiked ?? false,
-                onTap: (isLiked) async {
-                  // 处理点赞逻辑
-                  return !isLiked;
-                },
-              ),
-              SizedBox(width: 8),
-              Text('$likeCount Likes'),
-              SizedBox(width: 16),
-              GestureDetector(
-                onTap: () {
-                  _showCommentDialog(context);
-                },
-                child: Row(
-                  children: [
-                    Icon(Icons.comment, color: Colors.grey), // 评论图标
-                    SizedBox(width: 4),
-                    Text('$commentCount Comments'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // 评论展示部分
-          if (displayCommentList != null && displayCommentList!.isNotEmpty)
-            Container(
-              padding: EdgeInsets.only(top: 8.0),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey[300]!)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: displayCommentList!.map<Widget>((comment) {
-                  return _buildComment(context, comment, 3); // 默认从一级评论开始
-                }).toList(),
+              ],
+            ),
+            // 按钮部分
+            Padding(
+              padding: EdgeInsets.only(top: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  LikeButton(
+                    size: 28.0, // 增大按钮尺寸
+                    isLiked: isLiked ?? false,
+                    likeBuilder: (isLiked) {
+                      return Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: isLiked ? Colors.red : Colors.grey,
+                        size: 28.0,
+                      );
+                    },
+                    onTap: (isLiked) async {
+                      return !isLiked;
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '$likeCount',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  GestureDetector(
+                    onTap: () {
+                      _showCommentDialog(context);
+                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.comment,
+                          color: Colors.grey[600],
+                          size: 24.0,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '$commentCount',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-        ],
+            // 评论展示部分
+            if (displayCommentList != null && displayCommentList!.isNotEmpty)
+              Container(
+                padding: EdgeInsets.only(top: 12.0),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.grey[200]!,
+                      width: 1.0,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: displayCommentList!.map<Widget>((comment) {
+                    return _buildComment(context, comment, 3);
+                  }).toList(),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

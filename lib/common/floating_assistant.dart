@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:demo_project/api/user_api.dart';
 import 'package:flutter/material.dart';
 import 'package:animations/animations.dart';
 import 'package:flutter/scheduler.dart';
@@ -245,6 +246,12 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
   }
 
   Future<String> getSmartTipFromAI(String prompt) async {
+    var userSummary = " ";
+    var baseInfo = await UserApi().getUserInfoByToken();
+    if(baseInfo.code == 200){
+      var userProfile = await UserApi().getUserProfile();
+      var userSummary = "[附属信息: 以下是当前用户的身体数据"+baseInfo.data+userProfile.data+"]";
+    }
     final dio = Dio();
     final url = 'https://try2.fit2cloud.cn/api/application/chat_message/26fc124a-201e-11f0-a05b-0242ac140003';
     final token = 'application-2b370cbd857c4c64fb974cd4da2a3888';
@@ -253,7 +260,7 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
       "0": "n",
       "1": "e",
       "2": "w",
-      "message": prompt + "(备注: 请用普通文本格式, 不支持Markdown格式, 不要包含HTML标签, 每次回答请不要超过21个字符 每次回答请不要超过21个字符)",
+      "message": prompt + "(备注: 请用普通文本格式, 不支持Markdown格式, 不要包含HTML标签, 每次回答请不要超过40个字符 每次回答请不要超过40个字符" + userSummary + ")",
       "re_chat": false,
       "form_data": {}
     };

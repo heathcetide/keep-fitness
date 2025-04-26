@@ -4,6 +4,7 @@ import 'package:demo_project/pages/fitness_app/ui_view/title_view.dart';
 import 'package:demo_project/pages/fitness_app/ui_view/workout_view.dart';
 import 'package:flutter/material.dart';
 
+import '../../../widgets/calendar_view.dart';
 import '../fitness_app_theme.dart';
 
 class TrainingScreen extends StatefulWidget {
@@ -56,7 +57,29 @@ class _TrainingScreenState extends State<TrainingScreen>
   }
 
   void addAllListData() {
-    const int count = 5;
+    const int count = 6;
+
+    // 第0个，加Calendar
+    listViews.add(
+      Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Container(
+          constraints: BoxConstraints(
+            minHeight: 132, // 控制日历区域高度，比如一周一行
+            maxHeight: 324,
+          ),
+          child: CalendarView(
+            animationController: widget.animationController!,
+            animation: Tween<double>(begin: 0.0, end: 1.0).animate(
+              CurvedAnimation(
+                parent: widget.animationController!,
+                curve: Interval((1 / count) * 0, 1.0, curve: Curves.fastOutSlowIn),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
 
     listViews.add(
       TitleView(
@@ -215,67 +238,6 @@ class _TrainingScreenState extends State<TrainingScreen>
                                     fontSize: 22 + 6 - 6 * topBarOpacity,
                                     letterSpacing: 1.2,
                                     color: FitnessAppTheme.darkerText,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 38,
-                              width: 38,
-                              child: InkWell(
-                                highlightColor: Colors.transparent,
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(32.0)),
-                                onTap: () {},
-                                child: Center(
-                                  child: Icon(
-                                    Icons.keyboard_arrow_left,
-                                    color: FitnessAppTheme.grey,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 8,
-                                right: 8,
-                              ),
-                              child: Row(
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: Icon(
-                                      Icons.calendar_today,
-                                      color: FitnessAppTheme.grey,
-                                      size: 18,
-                                    ),
-                                  ),
-                                  Text(
-                                    '15 May',
-                                    textAlign: TextAlign.left,
-                                    style: TextStyle(
-                                      fontFamily: FitnessAppTheme.fontName,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 18,
-                                      letterSpacing: -0.2,
-                                      color: FitnessAppTheme.darkerText,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 38,
-                              width: 38,
-                              child: InkWell(
-                                highlightColor: Colors.transparent,
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(32.0)),
-                                onTap: () {},
-                                child: Center(
-                                  child: Icon(
-                                    Icons.keyboard_arrow_right,
-                                    color: FitnessAppTheme.grey,
                                   ),
                                 ),
                               ),
