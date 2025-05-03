@@ -26,7 +26,7 @@ class ApiService {
   late final Dio _dio;
   final LoadingQueue _loadingQueue = LoadingQueue();
 
-  final String baseUrl = 'https://e9be-2409-8962-ca-7c19-6d07-a4a9-adba-ed3.ngrok-free.app'; // 替换为你的基础URL
+  final String baseUrl = 'https://78c2-183-221-23-65.ngrok-free.app'; // 替换为你的基础URL
 
   ApiService._internal() {
     _dio = Dio(

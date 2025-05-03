@@ -24,6 +24,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
   List<Widget> listViews = <Widget>[];
   final ScrollController scrollController = ScrollController();
   double topBarOpacity = 0.0;
+  DateTime selectedDate = DateTime.now(); // 记录选中的日期
 
   @override
   void initState() {
@@ -58,19 +59,44 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
     super.initState();
   }
 
-  void addAllListData() {
-    const int count = 10;
+  // 获取新数据
+  void fetchDataForSelectedDate(DateTime date) {
+    // 在此处根据日期获取新的数据
+    // 这里你可以发起网络请求，或者根据日期做本地数据的处理
+    print("Fetching data for selected date: $date");
+    // 假设你根据日期获取到新的数据
+    setState(() {
+      // 更新UI
+      // 假设数据被更新后重新渲染列表数据
+      addAllListData();
+    });
+  }
 
-    // 第0个，加Calendar
+  void addAllListData() {
+    print("被调用了一次");
+    const int count = 10;
+    // 清空现有的视图
+    listViews.clear(); // 重要，清空之前的视图
+
+    // Calendar
     listViews.add(
       Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: Container(
           constraints: BoxConstraints(
-            minHeight: 132, // 控制日历区域高度，比如一周一行
+            minHeight: 132,
             maxHeight: 324,
           ),
           child: CalendarView(
+            selectedDay: selectedDate,
+            onDaySelected: (DateTime selectedDay) {
+              setState(() {
+                selectedDate = selectedDay;
+                print("Selected Date: $selectedDate");
+                // 根据新的日期请求数据
+                fetchDataForSelectedDate(selectedDay);
+              });
+            },
             animationController: widget.animationController!,
             animation: Tween<double>(begin: 0.0, end: 1.0).animate(
               CurvedAnimation(
@@ -82,6 +108,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
         ),
       ),
     );
+
 
     listViews.add(
       TitleView(
@@ -123,6 +150,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
                 curve: Interval((1 / count) * 3, 1.0,
                     curve: Curves.fastOutSlowIn))),
         mainScreenAnimationController: widget.animationController,
+        selectedDate: selectedDate,
       ),
     );
 
@@ -167,6 +195,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
                 curve: Interval((1 / count) * 7, 1.0,
                     curve: Curves.fastOutSlowIn))),
         mainScreenAnimationController: widget.animationController!,
+        selectedDate: selectedDate,
       ),
     );
     listViews.add(

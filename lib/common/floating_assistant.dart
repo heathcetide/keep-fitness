@@ -238,8 +238,8 @@ class _FloatingAssistantState extends State<FloatingAssistant> with SingleTicker
   }
 
   Future<void> _fetchTipMessage() async {
-    // final tip = await getSmartTipFromAI("请根据用户健康数据，用一句话提供简洁建议");
-    final tip = "请根据用户健康数据\n 用一句话提供简洁建议";
+    final tip = await getSmartTipFromAI("请根据用户健康数据，用一句话提供简洁建议");
+    // final tip = "请根据用户健康数据\n 用一句话提供简洁建议";
     setState(() {
       _tipMessage = tip;
     });

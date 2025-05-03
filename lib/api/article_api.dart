@@ -32,21 +32,4 @@ class ArticleApi {
       queryParameters: params,
     );
   }
-
-  // // 用户注册
-  // Future<ApiResponse> register(String code, String email) async {
-  //   return await _apiService.post(
-  //     '/fitness/api/users/register/email',
-  //     data: {'code': code, 'email': email},
-  //   );
-  // }
-  //
-  // // 用户登录
-  // Future<ApiResponse> login(String code, String email) async {
-  //   return await _apiService.post(
-  //     '/fitness/api/users/login/email',
-  //     data: {'code': code, 'email': email},
-  //   );
-  // }
-
 }

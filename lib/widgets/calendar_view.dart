@@ -6,9 +6,10 @@ import '../pages/fitness_app/fitness_app_theme.dart';
 class CalendarView extends StatefulWidget {
   final AnimationController? animationController;
   final Animation<double>? animation;
+  final DateTime selectedDay;  // 接收当前选中的日期
+  final Function(DateTime) onDaySelected;  // 回调，传递选中的日期
 
-  const CalendarView({Key? key, this.animationController, this.animation})
-      : super(key: key);
+  const CalendarView({Key? key, this.animationController, this.animation, required this.selectedDay, required this.onDaySelected}) : super(key: key);
 
   @override
   _CalendarViewState createState() => _CalendarViewState();
@@ -119,12 +120,7 @@ class _CalendarViewState extends State<CalendarView> {
             ),
           ),
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
-          },
+          onDaySelected: _onDaySelected,
           onFormatChanged: (format) {
             setState(() {
               _calendarFormat = format;
@@ -134,6 +130,15 @@ class _CalendarViewState extends State<CalendarView> {
       ),
     );
   }
+
+  // 更新日期时触发回调
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    setState(() {
+      _selectedDay = selectedDay; // 更新选中的日期
+    });
+    widget.onDaySelected(selectedDay); // 触发父组件的回调
+  }
+
 
   @override
   Widget build(BuildContext context) {

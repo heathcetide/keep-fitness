@@ -18,6 +18,7 @@ class TrainingScreen extends StatefulWidget {
 class _TrainingScreenState extends State<TrainingScreen>
     with TickerProviderStateMixin {
   Animation<double>? topBarAnimation;
+  DateTime selectedDate = DateTime.now(); // 记录选中的日期
 
   List<Widget> listViews = <Widget>[];
   final ScrollController scrollController = ScrollController();
@@ -56,6 +57,19 @@ class _TrainingScreenState extends State<TrainingScreen>
     super.initState();
   }
 
+  // 获取新数据
+  void fetchDataForSelectedDate(DateTime date) {
+    // 在此处根据日期获取新的数据
+    // 这里你可以发起网络请求，或者根据日期做本地数据的处理
+    print("Fetching data for selected date: $date");
+    // 假设你根据日期获取到新的数据
+    setState(() {
+      // 更新UI
+      // 假设数据被更新后重新渲染列表数据
+      addAllListData();
+    });
+  }
+
   void addAllListData() {
     const int count = 6;
 
@@ -69,6 +83,14 @@ class _TrainingScreenState extends State<TrainingScreen>
             maxHeight: 324,
           ),
           child: CalendarView(
+            selectedDay: selectedDate,
+            onDaySelected: (DateTime selectedDay) {
+              setState(() {
+                selectedDate = selectedDay;
+                // 根据新的日期请求数据
+                fetchDataForSelectedDate(selectedDay);
+              });
+            },
             animationController: widget.animationController!,
             animation: Tween<double>(begin: 0.0, end: 1.0).animate(
               CurvedAnimation(
